@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run Tests on Source Change",
+      "trigger": "PostFileSave",
+      "description": "Automatically runs the full Vitest test suite whenever a JavaScript file inside src/ is saved.",
+      "matcher": "src/.*\\.js$",
+      "action": {
+        "type": "command",
+        "command": "npx vitest run"
+      }
+    }
+  ]
+}

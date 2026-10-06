@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Remind: Run Vitest After JS Change",
+      "trigger": "PostFileSave",
+      "matcher": "src/.*\\.js$",
+      "action": {
+        "type": "agent",
+        "prompt": "A JavaScript source file in src/ was just saved. Remind the developer to run the relevant Vitest tests for this project.\n\nThe test suite lives in the tests/ directory and maps to source modules as follows:\n- taskManager.js, storageManager.js, eventBus.js → checkpoint1.test.js, integration.test.js\n- formController.js, filterController.js → controllers.test.js\n- taskDisplay.js → taskDisplay.test.js\n- statisticsPanel.js → statisticsPanel.test.js\n\nTo run all tests at once: npm test\nTo run a specific test file: npx vitest run --reporter=verbose tests/<file>.test.js\n\nRemind the developer to run the tests most relevant to the file they just saved, or run the full suite with npm test to catch any regressions. Do not modify any source files."
+      }
+    }
+  ]
+}

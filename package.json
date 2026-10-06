@@ -1,0 +1,12 @@
+{
+  "name": "smart-student-study-planner",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run --reporter=verbose"
+  },
+  "devDependencies": {
+    "fast-check": "^3.22.0",
+    "vitest": "^1.6.0"
+  }
+}

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Student Study Planner</title>
+  <style>
+    /* ===== CSS Variables ===== */
+    :root {
+      --color-primary: #0056b3;
+      --color-primary-hover: #004494;
+      --color-primary-text: #ffffff;
+      --color-bg: #f5f7fa;
+      --color-surface: #ffffff;
+      --color-border: #d0d7de;
+      --color-text: #1a1a2e;
+      --color-text-muted: #4a5568;
+      --color-error: #c0392b;
+      --color-error-bg: #fdecea;
+      --color-error-border: #e74c3c;
+      --color-success: #1a7a3f;
+      --color-priority-high: #c0392b;
+      --color-priority-medium: #e67e22;
+      --color-priority-low: #1a7a3f;
+      --color-progress-track: #d0d7de;
+      --color-progress-fill: #0056b3;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      --radius: 8px;
+      --radius-sm: 4px;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+    }
+
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ===== Header ===== */
+    .app-header {
+      background-color: var(--color-primary);
+      color: var(--color-primary-text);
+      padding: var(--spacing-md) var(--spacing-xl);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .app-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .app-header p {
+      font-size: 0.875rem;
+      opacity: 0.85;
+      margin-top: var(--spacing-xs);
+    }
+
+    /* ===== Layout ===== */
+    .app-main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: var(--spacing-lg) var(--spacing-xl);
+    }
+
+    /* Two-column layout for ≥ 1024px */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-lg);
+      align-items: start;
+    }
+
+    @media (min-width: 1024px) {
+      .app-layout {
+        grid-template-columns: 2fr 1fr;
+      }
+    }
+
+    /* Intermediate: 768–1023px — single column, no overflow */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .app-layout {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .app-main {
+        padding: var(--spacing-md) var(--spacing-lg);
+      }
+    }
+
+    /* Mobile: ≤ 767px — single-column stacked, task list on top */
+    @media (max-width: 767px) {
+      .app-main {
+        padding: var(--spacing-md);
+      }
+
+      .app-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .task-panel {
+        order: 1;
+      }
+
+      .stats-panel {
+        order: 2;
+      }
+    }
+
+    /* ===== Panel / Card Base ===== */
+    .panel {
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 2px solid var(--color-border);
+    }
+
+    /* ===== Form ===== */
+    .task-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-md);
+    }
+
+    @media (max-width: 767px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .form-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+
+    .form-label .required {
+      color: var(--color-error);
+      margin-left: 2px;
+    }
+
+    .form-control {
+      width: 100%;
+      min-height: 44px;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-family: var(--font-family);
+      color: var(--color-text);
+      background-color: var(--color-surface);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+    }
+
+    .form-control:invalid:not(:placeholder-shown) {
+      border-color: var(--color-error);
+    }
+
+    .form-error {
+      font-size: 0.8125rem;
+      color: var(--color-error);
+      min-height: 1.25em;
+      display: block;
+    }
+
+    .form-error:empty {
+      display: none;
+    }
+
+    /* ===== Buttons ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      min-width: 44px;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-family: var(--font-family);
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+      white-space: nowrap;
+    }
+
+    .btn:focus-visible {
+      outline: 3px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background-color: var(--color-primary);
+      color: var(--color-primary-text);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--color-primary-hover);
+    }
+
+    .btn-submit {
+      align-self: flex-end;
+      width: 100%;
+    }
+
+    /* ===== Filter Controls ===== */
+    .filter-section {
+      margin-bottom: var(--spacing-md);
+    }
+
+    .filter-section-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .filter-controls {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      min-width: 80px;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 1.5px solid var(--color-primary);
+      border-radius: var(--radius-sm);
+      font-size: 0.9375rem;
+      font-family: var(--font-family);
+      font-weight: 500;
+      cursor: pointer;
+      background-color: var(--color-surface);
+      color: var(--color-primary);
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .filter-btn:hover {
+      background-color: #e8f0fe;
+    }
+
+    .filter-btn:focus-visible {
+      outline: 3px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    /* Active filter button — WCAG compliant: white text on #0056b3 */
+    .filter-btn.active {
+      background: #0056b3;
+      color: #fff;
+    }
+
+    /* ===== Task List ===== */
+    .task-list-wrapper {
+      margin-top: var(--spacing-sm);
+    }
+
+    #task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    /* ===== Task Item Styles (generated by JS, defined here) ===== */
+    .task-item {
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: var(--spacing-md);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-md);
+      transition: box-shadow 0.15s ease;
+    }
+
+    .task-item:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Priority border colours */
+    .task-priority-high {
+      border-left: 4px solid red;
+    }
+
+    .task-priority-medium {
+      border-left: 4px solid orange;
+    }
+
+    .task-priority-low {
+      border-left: 4px solid green;
+    }
+
+    /* Completed task style */
+    .task-completed {
+      text-decoration: line-through;
+      opacity: 0.5;
+    }
+
+    /* ===== Empty State ===== */
+    .empty-state {
+      text-align: center;
+      padding: var(--spacing-xl);
+      color: var(--color-text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 2.5rem;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .empty-state-text {
+      font-size: 1rem;
+    }
+
+    /* ===== Statistics Panel ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .stat-card {
+      background-color: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: var(--spacing-md);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.8125rem;
+      color: var(--color-text-muted);
+      margin-top: var(--spacing-xs);
+      font-weight: 500;
+    }
+
+    /* ===== Progress Bar ===== */
+    .progress-section {
+      margin-top: var(--spacing-md);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .progress-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+
+    .progress-percentage {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 12px;
+      background-color: var(--color-progress-track);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    #progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background-color: var(--color-progress-fill);
+      border-radius: 100px;
+      transition: width 0.4s ease;
+    }
+
+    /* ===== Error Toast ===== */
+    #error-toast {
+      position: fixed;
+      bottom: var(--spacing-lg);
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--color-error-bg);
+      color: var(--color-error);
+      border: 1.5px solid var(--color-error-border);
+      border-radius: var(--radius);
+      padding: var(--spacing-md) var(--spacing-lg);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      max-width: 480px;
+      width: calc(100% - 2 * var(--spacing-lg));
+      display: none;
+      text-align: center;
+    }
+
+    #error-toast.visible {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== App Header ===== -->
+  <header class="app-header" role="banner">
+    <h1>📚 Smart Student Study Planner</h1>
+    <p>Organise your study tasks and track your progress</p>
+  </header>
+
+  <!-- ===== Main Content ===== -->
+  <main class="app-main" role="main">
+    <div class="app-layout">
+
+      <!-- ===== Left Column: Task List Panel ===== -->
+      <section class="panel task-panel" aria-labelledby="task-panel-title">
+        <h2 class="panel-title" id="task-panel-title">My Study Tasks</h2>
+
+        <!-- Task Creation Form -->
+        <form
+          id="task-form"
+          class="task-form"
+          novalidate
+          aria-label="Create a new study task"
+        >
+          <div class="form-row">
+            <!-- Title -->
+            <div class="form-group">
+              <label class="form-label" for="task-title">
+                Task Title <span class="required" aria-hidden="true">*</span>
+              </label>
+              <input
+                type="text"
+                id="task-title"
+                name="task-title"
+                class="form-control"
+                placeholder="e.g. Review Chapter 5"
+                maxlength="100"
+                autocomplete="off"
+                aria-label="Task title (1 to 100 characters)"
+                aria-required="true"
+                aria-describedby="error-title"
+              />
+              <span id="error-title" class="form-error" role="alert" aria-live="polite"></span>
+            </div>
+
+            <!-- Subject -->
+            <div class="form-group">
+              <label class="form-label" for="task-subject">
+                Subject <span class="required" aria-hidden="true">*</span>
+              </label>
+              <input
+                type="text"
+                id="task-subject"
+                name="task-subject"
+                class="form-control"
+                placeholder="e.g. Biology"
+                maxlength="50"
+                autocomplete="off"
+                aria-label="Subject name (1 to 50 characters)"
+                aria-required="true"
+                aria-describedby="error-subject"
+              />
+              <span id="error-subject" class="form-error" role="alert" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <!-- Due Date -->
+            <div class="form-group">
+              <label class="form-label" for="task-due-date">
+                Due Date <span class="required" aria-hidden="true">*</span>
+              </label>
+              <input
+                type="date"
+                id="task-due-date"
+                name="task-due-date"
+                class="form-control"
+                aria-label="Due date — must be today or a future date"
+                aria-required="true"
+                aria-describedby="error-due-date"
+              />
+              <span id="error-due-date" class="form-error" role="alert" aria-live="polite"></span>
+            </div>
+
+            <!-- Priority -->
+            <div class="form-group">
+              <label class="form-label" for="task-priority">
+                Priority <span class="required" aria-hidden="true">*</span>
+              </label>
+              <select
+                id="task-priority"
+                name="task-priority"
+                class="form-control"
+                aria-label="Task priority — Low, Medium, or High"
+                aria-required="true"
+                aria-describedby="error-priority"
+              >
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+              </select>
+              <span id="error-priority" class="form-error" role="alert" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary btn-submit"
+            aria-label="Add new study task to your list"
+          >
+            + Add Task
+          </button>
+        </form>
+
+        <!-- Filter Controls -->
+        <div class="filter-section">
+          <p class="filter-section-label" id="filter-label">Show tasks:</p>
+          <div
+            id="filter-controls"
+            class="filter-controls"
+            role="group"
+            aria-labelledby="filter-label"
+          >
+            <button
+              id="filter-all"
+              class="filter-btn active"
+              type="button"
+              aria-label="Filter by All tasks"
+              aria-pressed="true"
+            >
+              All
+            </button>
+            <button
+              id="filter-pending"
+              class="filter-btn"
+              type="button"
+              aria-label="Filter by Pending tasks"
+              aria-pressed="false"
+            >
+              Pending
+            </button>
+            <button
+              id="filter-completed"
+              class="filter-btn"
+              type="button"
+              aria-label="Filter by Completed tasks"
+              aria-pressed="false"
+            >
+              Completed
+            </button>
+          </div>
+        </div>
+
+        <!-- Task List Container -->
+        <div class="task-list-wrapper">
+          <ul
+            id="task-list"
+            role="list"
+            aria-label="Study tasks"
+            aria-live="polite"
+            aria-relevant="additions removals"
+          >
+            <!-- Tasks are rendered here by taskDisplay.js -->
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===== Right Column: Statistics Panel ===== -->
+      <section class="panel stats-panel" aria-labelledby="stats-panel-title">
+        <h2 class="panel-title" id="stats-panel-title">Progress Statistics</h2>
+
+        <!-- Statistics Counters -->
+        <div class="stats-grid" role="region" aria-label="Task statistics summary">
+          <div class="stat-card" aria-label="Total tasks">
+            <div
+              id="stat-total"
+              class="stat-value"
+              aria-label="Total number of tasks"
+              aria-live="polite"
+            >0</div>
+            <div class="stat-label">Total</div>
+          </div>
+
+          <div class="stat-card" aria-label="Completed tasks">
+            <div
+              id="stat-completed"
+              class="stat-value"
+              aria-label="Number of completed tasks"
+              aria-live="polite"
+            >0</div>
+            <div class="stat-label">Completed</div>
+          </div>
+
+          <div class="stat-card" aria-label="Pending tasks">
+            <div
+              id="stat-pending"
+              class="stat-value"
+              aria-label="Number of pending tasks"
+              aria-live="polite"
+            >0</div>
+            <div class="stat-label">Pending</div>
+          </div>
+
+          <div class="stat-card" aria-label="Completion percentage">
+            <div
+              id="stat-percentage"
+              class="stat-value"
+              aria-label="Completion percentage"
+              aria-live="polite"
+            >0%</div>
+            <div class="stat-label">Complete</div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section" aria-label="Task completion progress">
+          <div class="progress-header">
+            <span class="progress-label">Completion Progress</span>
+            <span class="progress-percentage" aria-hidden="true" id="progress-display">0%</span>
+          </div>
+          <div
+            class="progress-track"
+            role="progressbar"
+            aria-label="Task completion progress bar"
+            aria-valuenow="0"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <div id="progress-bar-fill"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ===== Error Toast ===== -->
+  <div
+    id="error-toast"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+  ></div>
+
+  <!-- ===== JS Modules ===== -->
+  <!-- All modules are imported by app.js — only a single entry-point tag needed -->
+  <script type="module" src="src/app.js"></script>
+
+</body>
+</html>
